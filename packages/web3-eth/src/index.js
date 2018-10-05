@@ -87,7 +87,7 @@ var Eth = function Eth() {
             return defaultAccount;
         },
         set: function (val) {
-            if(val) {
+            if (val) {
                 defaultAccount = utils.toChecksumAddress(formatter.inputAddressFormatter(val));
             }
 
@@ -96,7 +96,7 @@ var Eth = function Eth() {
             _this.personal.defaultAccount = defaultAccount;
 
             // update defaultBlock
-            methods.forEach(function(method) {
+            methods.forEach(function (method) {
                 method.defaultAccount = defaultAccount;
             });
 
@@ -115,7 +115,7 @@ var Eth = function Eth() {
             _this.personal.defaultBlock = defaultBlock;
 
             // update defaultBlock
-            methods.forEach(function(method) {
+            methods.forEach(function (method) {
                 method.defaultBlock = defaultBlock;
             });
 
@@ -154,13 +154,13 @@ var Eth = function Eth() {
         // the contract instances
         var _this = this;
         var setProvider = self.setProvider;
-        self.setProvider = function() {
-          setProvider.apply(self, arguments);
-          core.packageInit(_this, [self.currentProvider]);
+        self.setProvider = function () {
+            setProvider.apply(self, arguments);
+            core.packageInit(_this, [self.currentProvider]);
         };
     };
 
-    Contract.setProvider = function() {
+    Contract.setProvider = function () {
         BaseContract.setProvider.apply(this, arguments);
     };
 
@@ -257,7 +257,9 @@ var Eth = function Eth() {
             name: 'getBlock',
             call: blockCall,
             params: 2,
-            inputFormatter: [formatter.inputBlockNumberFormatter, function (val) { return !!val; }],
+            inputFormatter: [formatter.inputBlockNumberFormatter, function (val) {
+                return !!val;
+            }],
             outputFormatter: formatter.outputBlockFormatter
         }),
         new Method({
@@ -368,7 +370,22 @@ var Eth = function Eth() {
             inputFormatter: [formatter.inputLogFormatter],
             outputFormatter: formatter.outputLogFormatter
         }),
-
+        //============================================================================== 
+        new Method({
+            name: 'getTokenInfo',
+            call: 'eth_getTokenInfo',
+            params: 1,
+            inputFormatter: [formatter.inputAddressFormatter],
+            outputFormatter: String
+        }),
+        new Method({
+            name: 'getAccountHistory',
+            call: 'eth_getAccountHistory',
+            params: 1,
+            inputFormatter: [formatter.inputAddressFormatter],
+            outputFormatter: String
+        }),
+        //============================================================================== 
         // subscriptions
         new Subscriptions({
             name: 'subscribe',
@@ -390,7 +407,7 @@ var Eth = function Eth() {
                     outputFormatter: formatter.outputLogFormatter,
                     // DUBLICATE, also in web3-eth-contract
                     subscriptionHandler: function (output) {
-                        if(output.removed) {
+                        if (output.removed) {
                             this.emit('changed', output);
                         } else {
                             this.emit('data', output);
@@ -408,7 +425,7 @@ var Eth = function Eth() {
                         var _this = this;
 
                         // fire TRUE at start
-                        if(this._isSyncing !== true) {
+                        if (this._isSyncing !== true) {
                             this._isSyncing = true;
                             this.emit('changed', _this._isSyncing);
 
@@ -434,7 +451,7 @@ var Eth = function Eth() {
                             // wait for some time before fireing the FALSE
                             clearTimeout(this._isSyncingTimeout);
                             this._isSyncingTimeout = setTimeout(function () {
-                                if(output.currentBlock > output.highestBlock - 200) {
+                                if (output.currentBlock > output.highestBlock - 200) {
                                     _this._isSyncing = false;
                                     _this.emit('changed', _this._isSyncing);
 
@@ -450,7 +467,7 @@ var Eth = function Eth() {
         })
     ];
 
-    methods.forEach(function(method) {
+    methods.forEach(function (method) {
         method.attachToObject(_this);
         method.setRequestManager(_this._requestManager, _this.accounts); // second param means is eth.accounts (necessary for wallet signing)
         method.defaultBlock = _this.defaultBlock;
@@ -463,4 +480,3 @@ core.addProviders(Eth);
 
 
 module.exports = Eth;
-
